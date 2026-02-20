@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NYC Amenity Locator</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Leaflet MarkerCluster CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="app">
+    <aside id="sidebar">
+      <h1>🗽 NYC Amenity Locator</h1>
+
+      <section id="controls">
+        <div class="field-group">
+          <label for="amenity-type">Amenity Type</label>
+          <select id="amenity-type">
+            <option value="">Loading…</option>
+          </select>
+        </div>
+
+        <div class="field-group">
+          <label for="result-count">Results (nearest)</label>
+          <input id="result-count" type="number" min="1" max="50" value="5" />
+        </div>
+
+        <div class="field-group">
+          <label for="cluster-radius">Cluster Radius (km)</label>
+          <input id="cluster-radius" type="number" min="0.1" max="10" step="0.1" value="2" />
+        </div>
+
+        <div class="btn-row">
+          <button id="btn-locate" class="btn btn-primary">📍 Use My Location</button>
+          <button id="btn-search" class="btn btn-secondary" disabled>🔍 Find Nearest</button>
+          <button id="btn-cluster" class="btn btn-secondary" disabled>🔵 Show Clusters</button>
+          <button id="btn-all-types" class="btn btn-accent" disabled>⭐ Nearest of Each Type</button>
+        </div>
+      </section>
+
+      <section id="status-bar">
+        <span id="status-msg">Click "Use My Location" to start.</span>
+      </section>
+
+      <section id="results-panel">
+        <div id="results-list"></div>
+      </section>
+    </aside>
+
+    <div id="map"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet MarkerCluster JS -->
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <script src="app.js"></script>
+</body>
+</html>
