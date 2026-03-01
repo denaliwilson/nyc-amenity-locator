@@ -11,7 +11,7 @@ const {
 // Mock dataFetcher so tests never hit the real API
 jest.mock('../src/dataFetcher', () => ({
   DATASETS: {
-    parks:           { latField: 'latitude', lonField: 'longitude', nameField: 'name311', addressField: 'location', limit: 10 },
+    parks:           { latField: null, lonField: null, geoField: 'multipolygon', nameField: 'name311', addressField: 'location', limit: 10 },
     subway_stations: { latField: 'gtfs_latitude', lonField: 'gtfs_longitude', nameField: 'stop_name', addressField: null, limit: 10 },
   },
   fetchAmenityData: jest.fn(),
@@ -19,9 +19,13 @@ jest.mock('../src/dataFetcher', () => ({
 
 const { fetchAmenityData } = require('../src/dataFetcher');
 
-// Helper: build a minimal valid parks row
+// Helper: build a minimal valid parks row with a tiny square MultiPolygon
 function parkRow(id, name, lat, lon) {
-  return { objectid: String(id), name311: name, latitude: String(lat), longitude: String(lon) };
+  return {
+    objectid: String(id),
+    name311: name,
+    multipolygon: { type: 'MultiPolygon', coordinates: [[[[lon, lat], [lon + 0.0001, lat], [lon + 0.0001, lat + 0.0001], [lon, lat + 0.0001], [lon, lat]]]] },
+  };
 }
 
 describe('haversineKm', () => {

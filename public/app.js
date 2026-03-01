@@ -76,7 +76,7 @@ const TYPE_COLORS = {
   libraries:       '#d69e2e',
   subway_stations: '#e53e3e',
   hospitals:       '#3182ce',
-  restrooms:       '#805ad5',
+  wifi_hotspots:   '#805ad5',
 };
 
 function typeColor(type) {

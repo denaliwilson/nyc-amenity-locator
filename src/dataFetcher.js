@@ -2,32 +2,39 @@
 
 const axios = require('axios');
 
-const BASE_URL = 'https://data.cityofnewyork.us/resource';
+const NYC_BASE = 'https://data.cityofnewyork.us/resource';
 
 /**
  * NYC Open Data dataset definitions.
  * Each entry maps an amenity type name to its Socrata resource endpoint
  * and the field names used for latitude, longitude, and display name.
+ *
+ * Some datasets store geometry in a GeoJSON field instead of separate
+ * lat/lon columns.  When `geoField` is set the cleaner will extract
+ * coordinates from that field (Point → [lon,lat]; MultiPolygon →
+ * centroid of all coordinates).
  */
 const DATASETS = {
   parks: {
-    url: `${BASE_URL}/enfh-gkve.json`,
-    latField: 'latitude',
-    lonField: 'longitude',
+    url: `${NYC_BASE}/enfh-gkve.json`,
+    latField: null,
+    lonField: null,
+    geoField: 'multipolygon',      // centroid computed in dataCleaner
     nameField: 'name311',
     addressField: 'location',
     limit: 1000,
   },
   libraries: {
-    url: `${BASE_URL}/p4pf-fyc4.json`,
-    latField: 'latitude',
-    lonField: 'longitude',
+    url: `${NYC_BASE}/feuq-due4.json`,
+    latField: null,
+    lonField: null,
+    geoField: 'the_geom',          // Point GeoJSON [lon, lat]
     nameField: 'name',
-    addressField: 'address',
+    addressField: null,             // built from housenum + streetname in cleaner
     limit: 500,
   },
   subway_stations: {
-    url: `${BASE_URL}/kk4q-3rt2.json`,
+    url: 'https://data.ny.gov/resource/39hk-dx4f.json',
     latField: 'gtfs_latitude',
     lonField: 'gtfs_longitude',
     nameField: 'stop_name',
@@ -35,20 +42,21 @@ const DATASETS = {
     limit: 600,
   },
   hospitals: {
-    url: `${BASE_URL}/833h-xwsx.json`,
+    url: 'https://health.data.ny.gov/resource/vn5v-hh5r.json',
     latField: 'latitude',
     lonField: 'longitude',
     nameField: 'facility_name',
-    addressField: 'location_1_address',
-    limit: 300,
+    addressField: 'address1',
+    limit: 500,
+    extraWhere: "county in ('New York','Bronx','Kings','Queens','Richmond')",
   },
-  restrooms: {
-    url: `${BASE_URL}/hjae-yuav.json`,
+  wifi_hotspots: {
+    url: `${NYC_BASE}/yjub-udmw.json`,
     latField: 'latitude',
     lonField: 'longitude',
     nameField: 'name',
     addressField: 'location',
-    limit: 500,
+    limit: 1000,
   },
 };
 
@@ -77,8 +85,19 @@ async function fetchAmenityData(type) {
 
   const params = {
     $limit: dataset.limit,
-    $where: `${dataset.latField} IS NOT NULL AND ${dataset.lonField} IS NOT NULL`,
   };
+
+  // Build $where – only include lat/lon IS NOT NULL when columns exist.
+  const whereParts = [];
+  if (dataset.latField && dataset.lonField) {
+    whereParts.push(`${dataset.latField} IS NOT NULL AND ${dataset.lonField} IS NOT NULL`);
+  }
+  if (dataset.extraWhere) {
+    whereParts.push(dataset.extraWhere);
+  }
+  if (whereParts.length > 0) {
+    params.$where = whereParts.join(' AND ');
+  }
 
   const response = await axios.get(dataset.url, { params, timeout: 15000 });
   const rows = response.data;
